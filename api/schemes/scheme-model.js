@@ -3,9 +3,10 @@ const db = require("../../data/db-config");
 async function find() {
   // EXERCISE A
   const rows = await db("schemes as sc")
-    .select("sc.scheme_id", "sc.scheme_name")
+    .select("sc.*")
     .count("st.step_id as number_of_steps")
-    .leftJoin("steps as st")
+    .leftJoin("steps as st", "sc.scheme_id", "=", "st.scheme_id")
+    .orderBy("sc.scheme_id")
     .groupBy("sc.scheme_id");
 
   /*
@@ -27,7 +28,23 @@ async function find() {
   return rows;
 }
 
-function findById(scheme_id) {
+async function findById(scheme_id) {
+  const rows = await db("schemes as sc")
+    .select("sc.scheme_name", "st.*")
+    .leftJoin("steps as st", "sc.scheme_id", "st.scheme_id")
+    .where("sc.scheme_id", scheme_id)
+    .orderBy("st.step_number");
+  const newObj = {
+    scheme_id: rows[0].scheme_id,
+    scheme_name: rows[0].scheme_name,
+    steps: [],
+  };
+  rows.forEach((row) => {
+    if (row.step_id) {
+      newObj.steps.push(row);
+    }
+  });
+  return newObj;
   // EXERCISE B
   /*
     1B- Study the SQL query below running it in SQLite Studio against `data/schemes.db3`:
