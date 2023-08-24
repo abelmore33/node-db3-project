@@ -158,11 +158,14 @@ order by st.step_number
   */
 }
 
-function add(scheme) {
+async function add(scheme) {
   // EXERCISE D
   /*
     1D- This function creates a new scheme and resolves to _the newly created scheme_.
   */
+  const [scheme_id] = await db("schemes").insert(scheme);
+
+  return db("schemes").where("scheme_id", scheme_id).first();
 }
 
 function addStep(scheme_id, step) {
@@ -172,6 +175,14 @@ function addStep(scheme_id, step) {
     and resolves to _all the steps_ belonging to the given `scheme_id`,
     including the newly created one.
   */
+  return db("steps")
+    .insert({
+      ...step,
+      scheme_id,
+    })
+    .then(() => {
+      return db("steps").where("scheme_id", scheme_id).orderBy("step_number");
+    });
 }
 
 module.exports = {
